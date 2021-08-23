@@ -1,4 +1,5 @@
 Gitflow Workflow is a Git workflow that helps with continuous software development and implementing DevOps practices.
+
 <img width="650" src="https://github.com/anirvanr/GitflowWorkflow/blob/master/Screenshot_GitFlow.png">
 
 ### Common types of branches
