@@ -27,7 +27,7 @@ The overall flow of Gitflow is:
 6.	If an issue in `master` is detected a `hotfix` branch is created from `master`
 7.	Once the `hotfix` is complete it is merged to both `develop` and `master`
 
- ### Feature branch process
+ ### Feature scenario
  
 - Feature branches are always branched from develop.
 - Feature branches need not be deployed.
@@ -40,6 +40,7 @@ Creating a feature branch:
 
 ```bash
 git checkout -b feature/J-1234 develop
+
 // Where J-1234 is the Jira ticket this feature corresponds to
 
 // add and commit here
@@ -49,7 +50,6 @@ If your change contains more work than can be sensibly covered in a single commi
 
 ```bash
 git checkout feature/J-1234
-
 git rev-list --count HEAD
 
 // count the commits for the branch you are on
@@ -76,7 +76,9 @@ Many times when you do git rebase, you have conflicts. You need to resolve them 
 
 Push feature branch:
 
-`git push origin feature/J-1234`
+```bash
+git push origin feature/J-1234
+```
 
 - Open a new Pull Request for `feature/J-1234` 
 - Have your Pull Request reviewed. Have others make comments if anything needs to change. 
@@ -92,4 +94,94 @@ Once the feature branch has been successfully merged, it can be deleted both loc
 git checkout develop
 git branch -d feature/J-1234
 git push origin --delete feature/J-1234
+```
+
+### Release scenario
+
+- The release branch is created off the development branch.
+- The release branch is merged into master and also back into development.
+- Any minor tweaks can be made and committed to this release branch. Remember the rule here is no new functionality. 
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b release-1.0.0
+
+// add and commit here
+```
+
+Push to a branch on remote with the same name, then make a Pull Request from yours into develop
+
+```bash
+git push origin release-1.0.0
+```
+
+Once PR approval is received, and go ahead is given to move the release candidate changes to production, as per git flow we merge the `release` branch changes in to the `master` branch and create a tag for the release. We also merge the changes from the `release` branch back in to `develop` branch.
+
+```bash
+git checkout develop
+git pull origin develop
+git merge --no-ff release-1.0.0
+git push origin develop
+git checkout master
+git pull origin master
+git merge --no-ff release-1.0.0
+git push origin master
+```
+
+Finally create a tag on master and delete our release branch
+
+```bash
+git checkout master
+git pull origin master
+git tag -a 1.0.0 -m "xyz feature is released in this tag."
+git push origin 1.0.0
+git branch -d release-1.0.0
+git push origin --delete release-1.0.0
+```
+
+### Hotfix scenario
+
+An issue is reported to the support team and a bug is logged.
+
+-	A hotfix branch is created directly off the latest commit on master.
+-	The only commits allowed on the hotfix branch are ones that explicitly address the software bug.
+-	No feature enhancements or chores are allowed on the hotfix branch.
+-	The hotfix branch merges into both master and develop branches when its lifecycle ends.
+- The hotfix branch is deleted after it is merged into master and develop branches.
+
+You can list the tags on remote repository with `git ls-remote --tags origin`
+
+```bash
+git fetch origin –tags
+git checkout -b hotfix-1.0.1 1.0.0
+
+// add and commit here
+
+git push origin hotfix-1.0.1
+```
+
+If PR build is successful, and after incorporating any Review comments, the PR changes are merged into the master branch.
+
+```bash
+git checkout master
+git merge --no-ff hotfix-1.0.1
+git tag -a 1.0.1 -m "Hotfix Release 1.0.1"
+git push origin master 1.0.1
+```
+
+Next, include the hotfix in develop, too:
+
+```bash
+git checkout develop
+git pull origin develop
+git merge --no-ff hotfix-1.0.1
+git push origin develop
+```
+
+We can also delete the release branch once merged
+
+```bash
+git branch -d hotfix-1.0.1
+git push origin -d hotfix-1.0.1
 ```
